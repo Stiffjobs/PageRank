@@ -84,6 +84,33 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
+    PR = dict()
+    page = random.choice(list(corpus.keys()))
+
+    for key in corpus.keys():
+        PR[key] = 0
+    
+    while n > 0:
+        n -= 1
+        #count the times
+        PR[page] += 1
+        rand = random.random()
+        trans = transition_model(corpus, page, damping_factor)
+
+        #surf to next page, based on previous sample's transition model
+        for key in trans.keys():
+            if trans[key] < rand:
+                rand -= trans[key]
+            else:
+                page = key
+                break
+    
+    for key in PR.keys():
+        #change the count times to probability by divide it by SAMPLES
+        PR[key] = round(PR[key]/SAMPLES, 5)
+    
+    return PR
+    
     
 
 
@@ -107,15 +134,22 @@ def iterate_pagerank(corpus, damping_factor):
         for key in PR.keys():
             t = PR[key]
 
+            # this line equal to (1- damping factor / N)
             temp[key] = (1-damping_factor)/len(corpus.keys())
 
+            #iterate through every page links to the "key" page.
             for page, links in corpus.items():
                 if key in links:
                     temp[key] += damping_factor * (PR[page]/len(links))
-        
+
+            #in order to check whether break the while loop.
             if abs(t - temp[key]) < 0.001:
                 check = False
+        #update this dictionary        
         PR.update(temp)
+    
+    for key in PR.keys():
+        PR[key] = round(PR[key], 5)
         
     return PR       
 
